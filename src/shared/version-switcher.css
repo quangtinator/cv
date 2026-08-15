@@ -1,0 +1,255 @@
+/* ════════════════════════════════════════════════════════════════════════
+   Version switcher — shared across v1 / v2 / v3.
+   Every property is set explicitly so that v1's `*` reset and v2's Tailwind
+   preflight cannot change how it looks. Kept out of any @layer on purpose:
+   unlayered rules win over Tailwind's layered base styles.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.pvs {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 9990;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  line-height: 1.3;
+  color: #eef2ff;
+  /* The nav box also spans the collapsed menu; only its visible parts
+     should catch clicks, so the page underneath stays interactive. */
+  pointer-events: none;
+}
+
+.pvs *,
+.pvs *::before,
+.pvs *::after {
+  box-sizing: border-box;
+}
+
+/* ── Toggle pill ──────────────────────────────────────────────────────── */
+
+.pvs__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 9px 14px;
+  border: 1px solid rgba(190, 210, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(14, 18, 34, 0.82);
+  color: #eef2ff;
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 10px 30px rgba(2, 6, 18, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.pvs__toggle:hover {
+  transform: translateY(-2px);
+  border-color: rgba(190, 210, 255, 0.5);
+  background: rgba(18, 24, 44, 0.92);
+}
+
+.pvs__toggle:focus-visible {
+  outline: 2px solid #7fd8ff;
+  outline-offset: 3px;
+}
+
+.pvs__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7fd8ff;
+  box-shadow: 0 0 0 4px rgba(127, 216, 255, 0.16);
+  flex: none;
+}
+
+.pvs__toggle-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.pvs__toggle-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9fb4e8;
+}
+
+.pvs__toggle-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #eef2ff;
+}
+
+.pvs__chevron {
+  width: 8px;
+  height: 8px;
+  margin-left: 2px;
+  border-right: 2px solid #9fb4e8;
+  border-bottom: 2px solid #9fb4e8;
+  transform: rotate(-135deg) translate(-1px, -1px);
+  transition: transform 0.25s ease;
+  flex: none;
+}
+
+.pvs--open .pvs__chevron {
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+/* ── Version list ─────────────────────────────────────────────────────── */
+
+.pvs__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 268px;
+  max-width: calc(100vw - 40px);
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  border: 1px solid rgba(190, 210, 255, 0.22);
+  border-radius: 16px;
+  background: rgba(12, 16, 30, 0.9);
+  box-shadow: 0 22px 60px rgba(2, 6, 18, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  opacity: 0;
+  transform: translateY(10px) scale(0.97);
+  transform-origin: bottom left;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+
+.pvs--open .pvs__list {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.pvs__list li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pvs__item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: #eef2ff;
+  font-size: 13px;
+  text-decoration: none;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.pvs__item:hover {
+  background: rgba(109, 155, 255, 0.14);
+  border-color: rgba(148, 184, 255, 0.28);
+  color: #eef2ff;
+}
+
+.pvs__item:focus-visible {
+  outline: 2px solid #7fd8ff;
+  outline-offset: 2px;
+}
+
+.pvs__item--current {
+  background: rgba(109, 155, 255, 0.18);
+  border-color: rgba(148, 184, 255, 0.4);
+}
+
+.pvs__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  background: linear-gradient(140deg, #7fd8ff 0%, #6d9bff 55%, #9d7bff 100%);
+  color: #0a0f1e;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.pvs__item--current .pvs__badge {
+  box-shadow: 0 0 0 3px rgba(127, 216, 255, 0.2);
+}
+
+.pvs__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pvs__name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #eef2ff;
+}
+
+.pvs__tag {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(127, 216, 255, 0.16);
+  color: #7fd8ff;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pvs__tagline {
+  font-size: 11px;
+  font-weight: 400;
+  color: #9fb4e8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Small screens ────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .pvs {
+    left: 12px;
+    bottom: 12px;
+  }
+
+  .pvs__toggle {
+    padding: 8px 12px;
+  }
+
+  .pvs__list {
+    width: 244px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pvs__toggle,
+  .pvs__list,
+  .pvs__chevron,
+  .pvs__item {
+    transition: none;
+  }
+}

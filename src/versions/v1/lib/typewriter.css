@@ -1,0 +1,54 @@
+.Typewriter__cursor {
+  margin-left: 2px;
+  animation: Typewriter-cursor 1s step-end infinite;
+}
+
+@keyframes Typewriter-cursor {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Text loop (greeting swap) */
+
+.text-loop {
+  display: inline-block;
+  position: relative;
+  vertical-align: bottom;
+  overflow: hidden;
+}
+
+.text-loop__sizer {
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+.text-loop__item {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  animation: text-loop-in 0.45s cubic-bezier(0.22, 0.9, 0.3, 1);
+}
+
+@keyframes text-loop-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.55em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .Typewriter__cursor,
+  .text-loop__item {
+    animation: none;
+  }
+}

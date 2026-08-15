@@ -1,0 +1,154 @@
+{
+  "site": {
+    "name": "Vu Nhat Quang Phung",
+    "initials": "VQ",
+    "role": "Senior Software Engineer",
+    "tagline": "I design and operate production-grade full-stack, cloud, and AI systems from customer requirements to continuous improvement.",
+    "email": "quang.phung@rwth-aachen.de",
+    "phone": "+49 176 45297897",
+    "location": "Aachen, Germany",
+    "socials": [
+      { "label": "LinkedIn", "url": "https://linkedin.com/in/vu-nhat-quang-phung-77144b162", "icon": "linkedin" }
+    ]
+  },
+  "stats": [
+    { "value": "4+", "label": "Years in software" },
+    { "value": "2", "label": "Academic degrees" },
+    { "value": "1", "label": "Peer-reviewed publication" }
+  ],
+  "about": {
+    "paragraphs": [
+      "I'm a senior software engineer focused on full-stack, backend, cloud, and AI solution engineering. I work across TypeScript / Node.js and Python, with hands-on ownership of solution architecture, Azure deployments, CI/CD, infrastructure as code, and production operations.",
+      "From customer requirements and MVPs through testing, staging, production, and continuous improvement, I build maintainable systems that are secure, observable, and ready to evolve. My current focus includes LLM and agent systems, evaluation harnesses, and workflow automation."
+    ],
+    "highlights": [
+      "End-to-end delivery from customer requirements to production operations",
+      "LLM, agent, and AI harness engineering with repeatable evaluation",
+      "Azure, Docker, OpenTofu, CI/CD, monitoring, and infrastructure ownership"
+    ]
+  },
+  "projects": [
+    {
+      "icon": "✦",
+      "title": "Flashcard Widget",
+      "description": "Master's thesis at RWTH Aachen University: conception and development of a flashcard widget for learning workflows.",
+      "tags": ["M.Sc. thesis", "Data Science", "Learning technology"]
+    },
+    {
+      "icon": "◇",
+      "title": "OER Learning Platform",
+      "description": "A modular web-based learning platform created for a Bachelor's thesis to practice the OER cycle in online workshops.",
+      "tags": ["React", "Node.js / Express", "Docker"]
+    },
+    {
+      "icon": "◌",
+      "title": "Digital Educational Game",
+      "description": "Research project published at CELDA 2022, describing a digital educational game for practicing OER in online workshops.",
+      "tags": ["Research", "CELDA 2022", "OER"]
+    },
+    {
+      "icon": "⌁",
+      "title": "AI & Agent Systems",
+      "description": "Production-oriented LLM and agent applications with repeatable evaluation, testing, quality checks, and workflow hardening.",
+      "tags": ["LangChain", "LangGraph", "Qdrant"]
+    }
+  ],
+  "skillGroups": [
+    {
+      "category": "Application Engineering",
+      "icon": "✦",
+      "items": ["TypeScript", "JavaScript", "Python", "Node.js", "NestJS", "FastAPI", "Angular", "React", "Vue", "Next.js", "REST APIs", "OpenAPI"]
+    },
+    {
+      "category": "AI & Automation",
+      "icon": "⌁",
+      "items": ["LangChain", "LangGraph", "Qdrant", "AI Agents", "AI Harness Engineering", "Evaluation & Hardening", "Copilot Studio", "Power Automate"]
+    },
+    {
+      "category": "Cloud & Delivery",
+      "icon": "◇",
+      "items": ["Azure", "AWS", "Docker", "OpenTofu", "GitLab CI/CD", "Linux", "Monitoring", "DNS / Server Management", "Dokploy"]
+    },
+    {
+      "category": "Data & Security",
+      "icon": "◌",
+      "items": ["PostgreSQL", "Prisma", "MongoDB", "Microsoft SQL Server", "JWT", "SSO", "Application Security"]
+    },
+    {
+      "category": "Engineering Practice",
+      "icon": "◎",
+      "items": ["Git", "GitHub", "GitLab", "GitHub Copilot", "Kanban", "Agile / Scrum", "Husky / Git Hooks"]
+    },
+    {
+      "category": "Additional Knowledge",
+      "icon": "+",
+      "items": ["Java", "Spring Boot", "JPA / Hibernate", "Gradle", "Flyway"]
+    }
+  ],
+  "coreFocus": [
+    { "name": "Full-stack & backend systems", "detail": "TypeScript, Node.js, Python, REST APIs" },
+    { "name": "AI solution engineering", "detail": "LLMs, agents, evaluation, workflow automation" },
+    { "name": "Cloud & platform delivery", "detail": "Azure, AWS, Docker, OpenTofu, CI/CD" },
+    { "name": "Data & application security", "detail": "PostgreSQL, Prisma, JWT, SSO" }
+  ],
+  "experience": [
+    {
+      "period": "Apr 2026 - Present",
+      "role": "Senior Software Engineer - AI Solution Engineering",
+      "company": "INC Innovation Center GmbH",
+      "description": "Work with customers and stakeholders to turn business requirements into user-centered digital solutions. Build and operate TypeScript and PostgreSQL services on Azure with Docker, OpenTofu, GitLab CI/CD, monitoring, and production support, while developing LLM and agent applications with evaluation and hardening workflows.",
+      "tags": ["TypeScript", "Azure", "LLM / Agents", "OpenTofu", "GitLab CI/CD"]
+    },
+    {
+      "period": "Aug 2023 - Mar 2026",
+      "role": "Software Engineer",
+      "company": "Fraunhofer FIT",
+      "description": "Developed and operated production web platforms and backend services across React, Angular, Vue, Node.js, NestJS, and FastAPI. Built data-processing and ingestion pipelines, worked across Linux and Docker infrastructure, and coordinated two working students through a Kanban-based delivery workflow.",
+      "tags": ["React", "Angular", "Node.js", "NestJS", "FastAPI", "AWS S3"]
+    },
+    {
+      "period": "May 2022 - Dec 2022",
+      "role": "Working Student - Data Engineering",
+      "company": "Vygon GmbH",
+      "description": "Automated data-processing and reporting workflows with SQL, VBA, and Microsoft SQL Server. Improved data quality through validation and standardized structures, and supported software-validation activities with structured technical documentation.",
+      "tags": ["SQL", "VBA", "Microsoft SQL Server", "Data quality"]
+    }
+  ],
+  "education": [
+    {
+      "period": "Apr 2022 - Apr 2024",
+      "degree": "Master of Science (M.Sc.) in Data Science",
+      "institution": "RWTH Aachen University",
+      "details": "Dean's List 2023-2024. Master's thesis: Conception and Development of a Flashcard Widget."
+    },
+    {
+      "period": "Apr 2018 - Dec 2021",
+      "degree": "Bachelor of Science (B.Sc.) in Computer Science",
+      "institution": "RWTH Aachen University",
+      "details": "Bachelor's thesis: Developing a Framework to Practice OER Cycle in Online Workshops based on a Digital Learning Game."
+    }
+  ],
+  "certifications": [
+    { "name": "AWS Certified Cloud Practitioner", "issuer": "Amazon Web Services", "year": "2026" },
+    { "name": "Certified Data Scientist", "issuer": "Fraunhofer IAIS", "year": "2024" }
+  ],
+  "publication": {
+    "authors": "Ali, L., Phung, Q., Roepke, R., & Schroeder, U.",
+    "year": "2022",
+    "title": "A Digital Educational Game for Practicing OER",
+    "venue": "Proceedings of the 19th International Conference on Cognition and Exploratory Learning in the Digital Age (CELDA), Lisbon, Portugal."
+  },
+  "languages": [
+    { "name": "German", "level": "C1" },
+    { "name": "English", "level": "C1" },
+    { "name": "Vietnamese", "level": "Native" }
+  ],
+  "navLinks": [
+    { "label": "About", "href": "#about" },
+    { "label": "Work", "href": "#work" },
+    { "label": "Skills", "href": "#skills" },
+    { "label": "Experience", "href": "#experience" },
+    { "label": "Credentials", "href": "#credentials" },
+    { "label": "Contact", "href": "#contact" }
+  ]
+}

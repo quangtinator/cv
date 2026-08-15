@@ -1,0 +1,193 @@
+/* Vertical timeline — layout ported from react-vertical-timeline-component,
+   trimmed down to what the v1 portfolio uses. */
+
+.vertical-timeline {
+  position: relative;
+  width: 95%;
+  max-width: 1170px;
+  margin: 0 auto;
+  padding: 2em 0;
+}
+
+.vertical-timeline::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.vertical-timeline::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  height: 100%;
+  width: 4px;
+  background: var(--vt-line-color, #fff);
+}
+
+.vertical-timeline-element {
+  position: relative;
+  margin: 2em 0;
+}
+
+.vertical-timeline-element::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.vertical-timeline-element:first-child {
+  margin-top: 0;
+}
+
+.vertical-timeline-element:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Icon bubble ──────────────────────────────────────────────────────── */
+
+.vertical-timeline-element-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 4px var(--vt-line-color, #fff);
+  z-index: 1;
+}
+
+.vertical-timeline-element-icon svg {
+  font-size: 20px;
+}
+
+/* ── Content card ─────────────────────────────────────────────────────── */
+
+.vertical-timeline-element-content {
+  position: relative;
+  margin-left: 60px;
+  padding: 1em;
+  border-radius: 0.25em;
+  background: #fff;
+}
+
+.vertical-timeline-element-content-arrow {
+  position: absolute;
+  top: 22px;
+  right: 100%;
+  height: 0;
+  width: 0;
+  border: 16px solid transparent;
+  border-right-color: #fff;
+}
+
+.vertical-timeline-element-content p {
+  margin: 1em 0 0;
+  line-height: 1.6;
+}
+
+.vertical-timeline-element-date {
+  display: block;
+  margin-top: 0.8em;
+  font-size: 0.85em;
+  opacity: 0.75;
+}
+
+.vertical-timeline-element--marker .vertical-timeline-element-icon {
+  position: relative;
+  left: 0;
+  margin: 0;
+}
+
+/* ── Reveal ───────────────────────────────────────────────────────────── */
+
+.vertical-timeline-element-icon,
+.vertical-timeline-element-content {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 0.9, 0.3, 1);
+}
+
+.vertical-timeline-element.is-visible .vertical-timeline-element-icon,
+.vertical-timeline-element.is-visible .vertical-timeline-element-content {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.vertical-timeline-element.is-visible .vertical-timeline-element-content {
+  transition-delay: 0.1s;
+}
+
+/* ── Two-column layout ────────────────────────────────────────────────── */
+
+@media (min-width: 1170px) {
+  .vertical-timeline--two-columns::before {
+    left: 50%;
+    margin-left: -2px;
+  }
+
+  .vertical-timeline--two-columns .vertical-timeline-element-icon {
+    width: 60px;
+    height: 60px;
+    left: 50%;
+    margin-left: -30px;
+  }
+
+  .vertical-timeline--two-columns .vertical-timeline-element-icon svg {
+    font-size: 26px;
+  }
+
+  .vertical-timeline--two-columns .vertical-timeline-element-content {
+    margin-left: 0;
+    padding: 2em 3em;
+    width: 44%;
+  }
+
+  .vertical-timeline--two-columns
+    .vertical-timeline-element:nth-child(even)
+    .vertical-timeline-element-content {
+    float: right;
+  }
+
+  .vertical-timeline--two-columns
+    .vertical-timeline-element:nth-child(even)
+    .vertical-timeline-element-content-arrow {
+    right: auto;
+    left: 100%;
+    transform: rotate(180deg);
+  }
+
+  .vertical-timeline--two-columns .vertical-timeline-element-date {
+    position: absolute;
+    top: 24px;
+    left: 122%;
+    width: 100%;
+    margin: 0;
+    font-size: 1rem;
+    opacity: 0.85;
+  }
+
+  .vertical-timeline--two-columns
+    .vertical-timeline-element:nth-child(even)
+    .vertical-timeline-element-date {
+    left: auto;
+    right: 122%;
+    text-align: right;
+  }
+
+  .vertical-timeline--two-columns .vertical-timeline-element--marker {
+    height: 60px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vertical-timeline-element-icon,
+  .vertical-timeline-element-content {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
