@@ -34,9 +34,18 @@ npm run build
 npm run preview
 ```
 
-`npm run build` emits all three pages into `dist/`. If you deploy to a subpath
-(e.g. GitHub Pages project sites), set `base` in `vite.config.js` — the switcher
-builds its links from `import.meta.env.BASE_URL`, so it follows automatically.
+`npm run build` emits all three pages into `dist/`.
+
+## Deploying
+
+Pushing to `main` runs `.github/workflows/deploy.yml`, which builds the app and
+publishes it to GitHub Pages at https://quangtinator.github.io/cv/. This needs
+**Settings → Pages → Source: GitHub Actions** enabled on the repository once.
+
+Builds use `base: '/cv/'` so a project-site subpath resolves; the dev server still
+serves from `/`. If the repository is ever renamed, update `base` in
+`vite.config.js` to match — the switcher builds its links from
+`import.meta.env.BASE_URL`, so it follows automatically.
 
 ## Notes on the ported versions
 
