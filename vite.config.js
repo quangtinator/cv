@@ -8,7 +8,11 @@ import { fileURLToPath } from 'node:url'
 // v2's Tailwind preflight, v3's space-glass theme) without ever colliding.
 const page = (file) => fileURLToPath(new URL(file, import.meta.url))
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // GitHub Pages serves project sites from /<repo>/, but the dev server
+  // serves from the root. The switcher links off import.meta.env.BASE_URL,
+  // so it follows either way.
+  base: command === 'build' ? '/cv/' : '/',
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
@@ -23,4 +27,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))
