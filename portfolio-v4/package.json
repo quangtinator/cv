@@ -1,0 +1,24 @@
+{
+  "name": "signal-portfolio",
+  "private": true,
+  "version": "4.0.0",
+  "type": "module",
+  "description": "Portfolio v4 — The Signal. A terminal portfolio: browse it in a browser, or ssh in and read it from a real shell.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node ssh/start.mjs",
+    "gen:keys": "node ssh/gen-keys.mjs",
+    "test:ssh": "node test-ssh.mjs"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "ssh2": "^1.17.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.5.0",
+    "vite": "^7.0.0"
+  }
+}

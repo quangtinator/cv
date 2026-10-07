@@ -1,0 +1,9 @@
+node_modules
+dist
+*.local
+# SSH keys are credentials — never commit the private key.
+# (authorized_keys only contains public halves, but keep the whole dir out
+#  of git; regenerate locally with `npm run gen:keys`.)
+ssh/keys/
+# generated bash rc
+ssh/bashrc.signal
