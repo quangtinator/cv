@@ -11,6 +11,19 @@ bottom-left corner of every page moves between them.
 
 V3 is the default page and the newest design.
 
+## V4 — "The Signal" (SSH portfolio)
+
+V4 is a **separate, self-contained app** in [`portfolio-v4/`](./portfolio-v4/). It is a
+terminal-themed portfolio where **the SSH connection itself is the portfolio**:
+`ssh -p 2222 guest@<host>` lands in an interactive terminal shell
+(`help`, `about`, `skills`, `work`, `experience`, `credentials`, `contact`,
+`neofetch`), and `shell` drops into a real bash session. The web version is the
+same content in a browser. It carries its own copy of the profile content (the
+same data as V3's `content.json`) as its single source of truth. Run it with
+`cd portfolio-v4 && npm start` (see `portfolio-v4/README.md`). It does not touch
+this app or the Pages deploy.
+
+
 ## Why separate pages
 
 Each version brings its own global CSS: V1 has a `*` reset, V2 pulls in Tailwind's
