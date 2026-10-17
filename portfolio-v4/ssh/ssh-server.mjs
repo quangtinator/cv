@@ -235,6 +235,11 @@ server.on('connection', (client, info) => {
           },
         })
 
+        // Show banner + prompt immediately. Over raw TCP tunnels (Tailscale
+        // Funnel) there is no client-side echo to reveal anything, so without
+        // this a visitor would see a blank screen until their first keystroke.
+        shell.greetNow()
+
         channel.on('data', (d) => {
           if (shell) shell.write(d.toString('utf8'))
         })

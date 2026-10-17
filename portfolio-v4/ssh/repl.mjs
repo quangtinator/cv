@@ -49,12 +49,21 @@ export class PortfolioShell {
     }
   }
 
-  // Send the greeting banner. Done on the first write() so the client always
-  // sees it before typing.
+  // Send the greeting banner. Idempotent; normally triggered on the first
+  // client write(), or eagerly via greetNow() when the shell channel opens.
   _greet() {
     if (this.greetingSent) return
     this.greetingSent = true
     this._out('\r\n' + BANNER_ONCE + '\r\n')
+  }
+
+  // Eagerly send banner + prompt as soon as the shell channel opens, so the
+  // visitor sees something immediately without typing first. Needed over raw
+  // TCP tunnels (e.g. Tailscale Funnel), where waiting for the first
+  // keystroke would leave a blank screen.
+  greetNow() {
+    this._greet()
+    this._prompt()
   }
 
   _prompt() {
@@ -249,8 +258,7 @@ export class PortfolioShell {
       this._prompt()
       return
     }
-    const [cmd, ...rest] = line.split(/\s+/)
-    const arg = rest.join(' ')
+    const [cmd] = line.split(/\s+/)
 
     switch (cmd.toLowerCase()) {
       case 'help':
