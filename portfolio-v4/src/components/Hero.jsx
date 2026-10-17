@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { site } from '../data/content.js'
+import { site, stats } from '../data/content.js'
 
 const BOOT_LINES = [
   { p: 'guest@signal', c: 'ssh -p 2222 ' + 'guest@localhost', cls: '' },
@@ -19,6 +19,7 @@ function useTypewriter(lines, speedMs, startDelayMs) {
     let cancelled = false
 
     const startLine = () => {
+      ci = 0
       setCurrent({ p: lines[li].p, text: '' })
       const tick = () => {
         if (cancelled) return
@@ -27,7 +28,8 @@ function useTypewriter(lines, speedMs, startDelayMs) {
         if (ci < lines[li].c.length) {
           timer.current = setTimeout(tick, speedMs)
         } else {
-          setDone((d) => [...d, lines[li]])
+          const line = lines[li]
+          setDone((d) => [...d, line])
           setCurrent({ p: '', text: '' })
           li += 1
           if (li < lines.length) {
