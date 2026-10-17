@@ -69,7 +69,7 @@ export function cmdHelp() {
     ['credentials', 'degrees, certs, languages, paper'],
     ['contact', 'email, phone, socials'],
     ['neofetch', 'system + profile at a glance'],
-    ['shell', 'drop into a real bash session'],
+    ['shell', 'drop into the sandbox shell'],
     ['clear', 'wipe the screen'],
     ['exit', 'end the session'],
   ]
@@ -203,7 +203,7 @@ function await_neofetch() {
     [c.cyan + 'os', ' ' + process.platform + ' (' + process.arch + ')'],
     [c.cyan + 'node', ' v' + process.versions.node],
     [c.cyan + 'uptime', ' ' + formatUptime(process.uptime()) + ' (server)'],
-    [c.cyan + 'shell', ' portfolio → bash'],
+    [c.cyan + 'shell', ' portfolio → sandbox'],
     [c.cyan + 'version', ' portfolio v4 "The Signal"'],
   ]
   // The logo and info row counts differ; pad the shorter one so every row has
@@ -248,7 +248,7 @@ export function cmdLs() {
     ' ',
     c.greenBright + 'contact/' + c.reset + c.dim + '  reach me',
     ' ',
-    c.cyan + 'shell' + c.reset + c.dim + '  → real bash',
+    c.cyan + 'shell' + c.reset + c.dim + '  → sandbox shell',
   ].join('\n')
 }
 

@@ -3,7 +3,8 @@
 // - Listens on 0.0.0.0:2222 (override with PORT).
 // - Host key:  ssh/keys/host_ed25519
 // - Auth:      publickey only, keys from ssh/keys/authorized_keys
-// - Shell:     PortfolioShell (portfolio REPL); `shell` drops into real bash.
+// - Shell:     PortfolioShell (portfolio REPL); `shell` drops into the
+//              SandboxShell (fake Linux box — no real processes/files).
 // - One-shot:  ssh -p 2222 guest@host contact   runs a command, prints, exits.
 
 import ssh2 from 'ssh2'
@@ -57,17 +58,101 @@ if (allowedKeys.length === 0) {
   console.warn('[signal] no authorized_keys entries — nobody can log in.')
 }
 
+// ── Rate limiting (the server is publicly reachable via Tailscale Funnel) ───
+// Behind Funnel all public traffic arrives from one local address, so this
+// behaves as a global bucket there and as per-IP limiting on direct
+// LAN/tailnet connections. Loopback is exempt from auth-failure locking
+// (only local processes can claim it — integration tests must not self-lock)
+// but still counts against the connection cap.
+const RL = {
+  connWindowMs: 60_000,
+  connMax: 60, // new connections per IP per minute (global under Funnel)
+  maxConcurrent: 64, // global cap on live clients
+  failWindowMs: 120_000,
+  failMax: 10, // auth failures in the window → lock
+  lockMs: 600_000, // 10 minutes
+}
+const ipState = new Map() // ip → { conns: [ts], fails: [ts], lockedUntil: 0 }
+let activeConns = 0
+
+function ipEntry(ip) {
+  let e = ipState.get(ip)
+  if (!e) {
+    e = { conns: [], fails: [], lockedUntil: 0 }
+    ipState.set(ip, e)
+  }
+  const now = Date.now()
+  e.conns = e.conns.filter((t) => now - t < RL.connWindowMs)
+  e.fails = e.fails.filter((t) => now - t < RL.failWindowMs)
+  return e
+}
+
+const isLoopback = (ip) => ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1'
+
+function noteConn(ip) {
+  const e = ipEntry(ip)
+  e.conns.push(Date.now())
+  if (activeConns >= RL.maxConcurrent) return 'too many concurrent connections (global cap)'
+  if (e.conns.length > RL.connMax) return 'connection rate limit'
+  return null
+}
+
+function noteAuthFail(ip) {
+  const e = ipEntry(ip)
+  e.fails.push(Date.now())
+  if (e.fails.length > RL.failMax && !isLoopback(ip)) {
+    e.lockedUntil = Date.now() + RL.lockMs
+    e.fails = []
+    console.warn(
+      `[signal] ${ip}: ${RL.failMax}+ auth failures in ${RL.failWindowMs / 60000} min — locked for ${RL.lockMs / 60000} min`,
+    )
+  }
+}
+
+setInterval(() => {
+  const now = Date.now()
+  for (const [ip, e] of ipState) {
+    const stale =
+      now - (e.conns.at(-1) ?? 0) > RL.connWindowMs * 2 &&
+      now - (e.fails.at(-1) ?? 0) > RL.failWindowMs * 2 &&
+      now > (e.lockedUntil || 0)
+    if (stale) ipState.delete(ip)
+  }
+}, 5 * 60_000).unref()
+
 // ── Server ─────────────────────────────────────────────────────────────
 
 const server = new Server({ hostKeys }, null)
 
-server.on('connection', (client) => {
+server.on('connection', (client, info) => {
   let shell = null
-  const ip = client.socket ? client.socket.remoteAddress : 'unknown'
+  // ssh2 gives the peer address on the 'connection' event's info object
+  // (client.socket does NOT exist on the server side — the earlier code
+  // bucketed everyone as 'unknown').
+  const ip = (info && info.ip) || (client._sock && client._sock.remoteAddress) || 'unknown'
+  let authUser = ''
+
+  // Rate limiting: reject early, before any protocol handshake.
+  if (ipEntry(ip).lockedUntil > Date.now()) {
+    console.warn('[signal] dropping locked client from', ip)
+    client.end()
+    return
+  }
+  const rlReason = noteConn(ip)
+  if (rlReason) {
+    console.warn('[signal] dropping client from', ip, ':', rlReason)
+    client.end()
+    return
+  }
+  activeConns++
 
   client.on('authentication', (ctx) => {
+    authUser = ctx.username
     const { username, method } = ctx
-    if (username !== 'guest') return ctx.reject()
+    if (username !== 'guest') {
+      noteAuthFail(ip)
+      return ctx.reject()
+    }
     if (method === 'publickey') {
       const key = allowedKeys.find((k) => {
         try {
@@ -76,12 +161,19 @@ server.on('connection', (client) => {
           return false
         }
       })
-      if (!key) return ctx.reject()
+      if (!key) {
+        noteAuthFail(ip)
+        return ctx.reject()
+      }
       if (ctx.blob && ctx.signature) {
         try {
           const ok = key.verify(ctx.blob, ctx.signature, ctx.hashAlgo)
-          if (ok !== true) return ctx.reject()
+          if (ok !== true) {
+            noteAuthFail(ip)
+            return ctx.reject()
+          }
         } catch {
+          noteAuthFail(ip)
           return ctx.reject()
         }
       }
@@ -89,15 +181,16 @@ server.on('connection', (client) => {
       return ctx.accept()
     }
     // We do not accept 'none', password, or anything else.
+    noteAuthFail(ip)
     return ctx.reject()
   })
 
   client.on('ready', () => {
-    console.log(`[signal] authenticated: ${client.user} from ${ip}`)
+    console.log(`[signal] authenticated: ${authUser || 'guest'} from ${ip}`)
     client.on('session', (accept) => {
       const session = accept()
 
-      session.on('exec', (acceptExec, rejectExec, info) => {
+      session.on('exec', (acceptExec, _rejectExec, info) => {
         // One-shot command: run it as a portfolio command and exit.
         const cmdStream = acceptExec()
         const out = runOneShot(info.command)
@@ -110,12 +203,12 @@ server.on('connection', (client) => {
       // "dumb" server (no real PTY on Windows), but we must still accept the
       // request or the client times out ("Unable to request a pseudo-terminal").
       let ptyInfo = null
-      session.on('pty', (acceptPty, rejectPty, data) => {
+      session.on('pty', (acceptPty, _rejectPty, data) => {
         ptyInfo = data
         acceptPty()
       })
 
-      session.on('shell', (acceptShell, rejectShell, info) => {
+      session.on('shell', (acceptShell, _rejectShell, info) => {
         const channel = acceptShell()
         const term = ptyInfo || info.terminal || {}
         shell = new PortfolioShell({
@@ -153,7 +246,7 @@ server.on('connection', (client) => {
         channel.on('stderr', () => {})
 
         // Window size changes (session-level event)
-        session.on('window-change', (acceptWc, rejectWc, info) => {
+        session.on('window-change', (acceptWc, _rejectWc, info) => {
           if (shell) shell.resize(info.cols, info.rows)
           if (typeof acceptWc === 'function') acceptWc()
         })
@@ -164,6 +257,7 @@ server.on('connection', (client) => {
   })
 
   client.on('close', () => {
+    activeConns--
     if (shell) shell.dispose()
     shell = null
   })

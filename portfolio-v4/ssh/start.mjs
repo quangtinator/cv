@@ -49,9 +49,44 @@ if (!existsSync(path.join(dist, 'index.html'))) {
 }
 
 // Serve the built site.
+//
+// Two extra routes, both needed so ANY visitor can ssh in:
+//   /signal-config.json — runtime config (public host + ports). Fetched by the
+//     site at load time so the connect instructions work even when the public
+//     host changes (e.g. a new Tailscale Funnel URL) without rebuilding.
+//   /guest_ed25519      — the guest private key. Deliberately public: the SSH
+//     server is a sandbox (no real files/processes/network), so the key is a
+//     ticket, not a secret. See ssh/sandbox-shell.mjs.
+const guestKeyPath = path.join(here, 'keys', 'guest_ed25519')
+const PUBLIC_HOST = process.env.PUBLIC_HOST || '' // e.g. a Tailscale Funnel host
+const PUBLIC_SSH_PORT = Number(process.env.PUBLIC_SSH_PORT || 0) || null
+
+function publicConfig() {
+  return JSON.stringify({
+    publicHost: PUBLIC_HOST || null,
+    publicSshPort: PUBLIC_SSH_PORT,
+    sshUser: 'guest',
+  }, null, 2)
+}
+
 const server = http.createServer((req, res) => {
   try {
     let urlPath = decodeURIComponent(new URL(req.url, 'http://localhost').pathname)
+
+    if (urlPath === '/signal-config.json') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' })
+      return res.end(publicConfig())
+    }
+
+    if (urlPath === '/guest_ed25519') {
+      if (!existsSync(guestKeyPath)) {
+        res.writeHead(500)
+        return res.end('key not found — run `npm run gen:keys`')
+      }
+      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' })
+      return res.end(readFileSync(guestKeyPath))
+    }
+
     if (urlPath === '/') urlPath = '/index.html'
     const filePath = path.normalize(path.join(dist, urlPath))
     if (!filePath.startsWith(dist)) {

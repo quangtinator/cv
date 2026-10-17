@@ -1,7 +1,9 @@
 // Integration test: drive an interactive SSH session the way a real user
 // would (ssh2 Client in shell mode, sending raw terminal input).
 //   - portfolio REPL commands (help, contact, uptime)
-//   - `shell` → real bash → `echo`/`pwd` → `exit` back to portfolio
+//   - `shell` → sandbox shell (fake Linux box) → `echo`/`pwd` → `exit` back
+//     to the portfolio menu
+//   - sandbox safety: `rm -rf /` must NOT touch the real machine
 // Exit code 0 only if every check passes.
 
 import ssh2 from 'ssh2'
@@ -48,31 +50,37 @@ const states = [
     next: 'shell',
   },
   {
-    name: 'bash starts',
+    name: 'sandbox starts',
     send: () => 'shell\r',
-    pass: () => output.includes('dropping into'),
-    next: 'bash-echo',
+    pass: () => output.includes('dropping into the sandbox'),
+    next: 'sandbox-echo',
   },
   {
-    name: 'bash echo',
-    send: () => 'echo hello-from-bash\r',
-    pass: () => output.includes('hello-from-bash'),
-    next: 'bash-pwd',
+    name: 'sandbox echo',
+    send: () => 'echo hello-from-sandbox\r',
+    pass: () => output.includes('hello-from-sandbox'),
+    next: 'sandbox-pwd',
   },
   {
-    name: 'bash pwd',
+    name: 'sandbox pwd',
     send: () => 'pwd\r',
-    pass: () => /\/c\/Users\/\S+|\/home\/\S+/.test(tail(800)),
-    next: 'bash-exit',
+    pass: () => /\/home\/guest/.test(tail(800)),
+    next: 'sandbox-safe',
+  },
+  {
+    name: 'sandbox refuses rm -rf /',
+    send: () => 'rm -rf /\r',
+    pass: () => /nothing to delete|not your machine/i.test(tail(800)),
+    next: 'back-to-portfolio',
   },
   {
     name: 'back to portfolio',
     send: () => 'exit\r',
-    pass: () => output.includes('bash exited'),
+    pass: () => output.includes('sandbox exited'),
     next: 'uptime',
   },
   {
-    name: 'repl alive after bash',
+    name: 'repl alive after sandbox',
     send: () => 'uptime\r',
     pass: () => /\bup \d+[mhd]/.test(tail(400)),
     next: null,

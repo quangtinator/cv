@@ -1,6 +1,8 @@
 // PortfolioShell — the interactive loop guests land in over SSH.
 // Portfolio mode: a tiny line REPL over the portfolio commands.
-// `shell` switches to BashConsole; `exit` there returns to the portfolio REPL.
+// `shell` switches to the SandboxShell (a fake Linux box — see
+// sandbox-shell.mjs: no child processes, no filesystem, no network);
+// `exit` there returns to the portfolio REPL.
 
 import {
   BANNER,
@@ -18,7 +20,7 @@ import {
   cmdUnknown,
   c,
 } from './commands.mjs'
-import { BashPassthrough, detectShell } from './pty.mjs'
+import { SandboxShell } from './sandbox-shell.mjs'
 
 const PROMPT = c.greenBright + 'guest@signal' + c.reset + ':' + c.blue + 'portfolio' + c.reset + '$ '
 const BANNER_ONCE = BANNER
@@ -56,15 +58,18 @@ export class PortfolioShell {
   }
 
   _prompt() {
+    if (this.mode === 'sandbox') {
+      this._out(this.sandbox.prompt())
+      return
+    }
     this._out(PROMPT)
   }
 
   write(input) {
     this._greet()
-    if (this.mode === 'bash') {
-      this.shell.write(input)
-      return
-    }
+    // Both portfolio mode and sandbox mode go through the line editor;
+    // the sandbox answers whole lines (SandboxShell.run), so no raw
+    // byte forwarding is needed.
     this._replWrite(input)
   }
 
@@ -108,13 +113,7 @@ export class PortfolioShell {
         case '\r':
         case '\n':
           i++ // consume the newline
-          if (this._enter() && this.mode === 'bash') {
-            // The same chunk may already contain the first bash command
-            // (fast typing / paste). Forward it to bash instead of running
-            // it through the portfolio REPL.
-            if (i < input.length) this.shell.write(input.slice(i))
-            return
-          }
+          this._enter()
           continue
         case '\x7f':
         case '\b':
@@ -136,9 +135,12 @@ export class PortfolioShell {
             this._prompt()
           }
           break
-        case 4: // Ctrl+D
-          if (this.buf === '') this._bye(true)
-          break
+      case 4: // Ctrl+D
+        if (this.buf === '') {
+          if (this.mode === 'sandbox') this._toPortfolio()
+          else this._bye(true)
+        }
+        break
         case 21: // Ctrl+U
           if (this.buf !== '') {
             this.buf = ''
@@ -217,16 +219,32 @@ export class PortfolioShell {
   }
 
   _enter() {
-    const line = this.buf.trim()
-    const wasMode = this.mode
+    const line = this.buf
     this.buf = ''
     this.cursor = 0
     this._out('\r\n')
-    this._run(line)
-    return this.mode !== wasMode
+    this._run(line.trim())
   }
 
   _run(line) {
+    // Sandbox mode: hand the whole line to the fake shell.
+    if (this.mode === 'sandbox') {
+      const r = this.sandbox.run(line)
+      if (r.toPortfolio) {
+        this._toPortfolio()
+        return
+      }
+      if (r.clear) {
+        this._out('\x1b[2J\x1b[H')
+        this._greet()
+        this._prompt()
+        return
+      }
+      if (r.text) this._out(r.text + '\r\n')
+      this._prompt()
+      return
+    }
+
     if (line === '') {
       this._prompt()
       return
@@ -294,41 +312,34 @@ export class PortfolioShell {
   }
 
   _toShell() {
-    const detected = detectShell()
-    if (!detected) {
-      this._out(c.red + '[signal] no bash found on this machine (tried Git Bash /usr/bin/bash).\r\n' + c.reset)
-      this._prompt()
-      return
-    }
-    this.mode = 'bash'
-    this._out(c.dim + '\r\n  dropping into ' + detected.bin + c.reset + '\r\n')
-    this.shell = new BashPassthrough({
-      bin: detected.bin,
-      extraPaths: detected.extraPaths || [],
-      cols: this.cols,
-      rows: this.rows,
-      term: 'xterm-256color',
-      onOutput: (s) => this._out(s),
-      onExit: () => {
-        if (this.mode === 'bash') {
-          this.mode = 'portfolio'
-          this.shell = null
-          this._prompt()
-        }
-      },
-    })
+    this.sandbox = new SandboxShell()
+    this.mode = 'sandbox'
+    this._out(
+      c.dim +
+        '\r\n  dropping into the sandbox shell — a fake Linux box (no real processes, no real files)\r\n' +
+        c.reset +
+        '\r\n',
+    )
+    this._prompt()
+  }
+
+  _toPortfolio() {
+    this.mode = 'portfolio'
+    this.sandbox = null
+    this._out(c.dim + '\r\n[signal] sandbox exited\r\n' + c.reset)
+    this._prompt()
   }
 
   resize(cols, rows) {
     this.cols = cols || this.cols
     this.rows = rows || this.rows
-    if (this.mode === 'bash' && this.shell) this.shell.resize(this.cols, this.rows)
+    if (this.mode === 'sandbox' && this.sandbox) this.sandbox.resize(this.cols, this.rows)
   }
 
   _bye(sendGoodbye) {
     if (this.exited) return
     this.exited = true
-    if (this.mode === 'bash' && this.shell) this.shell.kill()
+    if (this.mode === 'sandbox' && this.sandbox) this.sandbox.dispose()
     if (sendGoodbye) {
       this._out(
         c.dim + '\r\n  bye — thanks for stopping by the signal.\r\n' + c.reset,
@@ -346,6 +357,6 @@ export class PortfolioShell {
   dispose() {
     if (this.exited) return
     this.exited = true
-    if (this.mode === 'bash' && this.shell) this.shell.kill()
+    if (this.mode === 'sandbox' && this.sandbox) this.sandbox.dispose()
   }
 }
