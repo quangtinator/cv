@@ -10,7 +10,7 @@ export default function SshSection() {
 
   useEffect(() => {
     let dead = false
-    fetch('/signal-config.json')
+    fetch(`${import.meta.env.BASE_URL}signal-config.json`)
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => {
         if (!dead && j) setCfg(j)
