@@ -7,7 +7,7 @@ const page = (file) => fileURLToPath(new URL(file, import.meta.url))
 export default defineConfig(({ command }) => ({
   // When built for a GitHub Pages project site (repo named "cv"), the site
   // lives under /cv/. Dev serves from /.
-  base: '/',
+  base: command === 'build' ? (process.env.PAGES_BASE_PATH || '/') : '/',
   plugins: [react()],
   server: {
     port: 5174,
