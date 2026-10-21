@@ -15,6 +15,10 @@ export function inspectPullRequest(pr, repository) {
   return issue;
 }
 
+export function stagingEvidenceUrl(api, sha) {
+  return `${api}/deployments?sha=${encodeURIComponent(sha)}&environment=staging`;
+}
+
 export async function run() {
   const event = JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, 'utf8'));
   if (!event.pull_request) throw new Error('This check requires a pull_request event.');
@@ -36,7 +40,7 @@ export async function run() {
     const runs = await runsResponse.json();
     if (runs.workflow_runs?.[0]?.conclusion !== 'success') throw new Error('The exact staging revision must pass CI before promotion. Re-run this check after staging CI completes.');
     if (process.env.PAGES_ENABLED === 'true') {
-      const deploymentsResponse = await fetch(`${api}/deployments?ref=${sha}&environment=staging`, { headers });
+      const deploymentsResponse = await fetch(stagingEvidenceUrl(api, sha), { headers });
       if (!deploymentsResponse.ok) throw new Error('Cannot verify the staging deployment.');
       const deployments = await deploymentsResponse.json();
       if (!deployments.length) throw new Error('The exact revision has no staging deployment.');
