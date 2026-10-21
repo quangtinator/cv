@@ -1,47 +1,85 @@
-name: Deploy to GitHub Pages
+name: Deploy Pages
 
 on:
   push:
-    branches: [main]
+    branches: [staging, main]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# Let a running deploy finish; queue at most one more behind it.
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
+    if: github.ref_name == 'staging' || github.ref_name == 'main'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: ${{ github.ref_name == 'staging' && 'staging' || 'production' }}
+      url: ${{ steps.url.outputs.url }}
+    env:
+      PAGES_BASE_PATH: ${{ github.ref_name == 'staging' && '/cv/staging/' || '/cv/' }}
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
-
       - run: npm ci
-
-      - run: npm run build
-
+      - run: npm --prefix portfolio-v4 ci
+      - run: node --test .github/scripts/workflow-policy.test.mjs
+      - run: node .github/scripts/check-source.mjs
+      - run: npm run build:site
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/checkout@v4
+        with:
+          ref: pages-content
+          path: .pages
+      - run: node .github/scripts/assemble-pages.mjs
+      - name: Save both environments for the next publication
+        working-directory: .pages
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --all
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: publish $GITHUB_REF_NAME from $GITHUB_SHA"
+            git push origin HEAD:pages-content
+          fi
       - uses: actions/configure-pages@v5
-
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
+          path: .pages-dist
       - id: deployment
         uses: actions/deploy-pages@v4
+      - id: url
+        env:
+          SITE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          if [ "$GITHUB_REF_NAME" = staging ]; then
+            echo "url=${SITE_URL%/}/staging/" >> "$GITHUB_OUTPUT"
+          else
+            echo "url=${SITE_URL%/}/" >> "$GITHUB_OUTPUT"
+          fi
+      - run: node .github/scripts/verify-published.mjs
+        env:
+          TEST_BASE_URL: ${{ steps.url.outputs.url }}
+      - run: npm run test:e2e
+        env:
+          TEST_BASE_URL: ${{ steps.url.outputs.url }}
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failure-${{ github.run_id }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 3

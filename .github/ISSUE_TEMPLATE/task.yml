@@ -1,0 +1,17 @@
+name: Task or bug
+description: Record the problem and acceptance criteria before implementation
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or desired outcome
+      description: Include reproduction steps for a bug.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria and testing
+      description: What must pass, and how will staging be verified?
+    validations:
+      required: true

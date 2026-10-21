@@ -1,0 +1,27 @@
+name: Workflow policy
+
+on:
+  pull_request:
+    branches: [staging, main]
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  issues: read
+  actions: read
+  deployments: read
+
+jobs:
+  workflow-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node --test .github/scripts/workflow-policy.test.mjs
+      - run: node .github/scripts/workflow-policy.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PAGES_ENABLED: ${{ vars.PAGES_ENABLED }}

@@ -12,7 +12,7 @@ export default defineConfig(({ command }) => ({
   // GitHub Pages serves project sites from /<repo>/, but the dev server
   // serves from the root. The switcher links off import.meta.env.BASE_URL,
   // so it follows either way.
-  base: command === 'build' ? '/cv/' : '/',
+  base: process.env.PAGES_BASE_PATH || (command === 'build' ? '/cv/' : '/'),
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
