@@ -1,7 +1,7 @@
 # Delivery workflow
 
 1. Create a GitHub issue describing the problem, scope and acceptance tests before implementation.
-2. Branch from `staging`: `git switch staging`, `git pull --ff-only`, then `git switch -c issue/<number>-description`.
+2. Update `main` before creating the issue branch: `git switch main`, `git pull --ff-only origin main`, then `git switch -c issue/<number>-description`. Create the branch only after the pull succeeds.
 3. Implement and run the project checks in `.github/workflows/ci.yml`. Add behavior tests when changing behavior.
 4. Push the issue branch and open a pull request into `staging`. Include `Closes #<number>` in its description.
 5. Merge only after CI and review pass. For deployed projects, verify the separate staging deployment and record its URL and test evidence.
